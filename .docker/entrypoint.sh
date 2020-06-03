@@ -14,4 +14,4 @@ if [ ! -f ".env" ]; then
 fi
 
 ## run server
-npm run start
+npx nodemon -L
