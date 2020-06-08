@@ -64,3 +64,4 @@ typings/
 *.tsbuildinfo
 
 /.docker/.cache/**
+/.docker/elasticdata/**
