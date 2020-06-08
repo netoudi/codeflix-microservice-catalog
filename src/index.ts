@@ -1,4 +1,8 @@
-import {ApplicationConfig, CodeflixMicroserviceCatalogApplication} from './application';
+import './bootstrap';
+import {
+  ApplicationConfig,
+  CodeflixMicroserviceCatalogApplication,
+} from './application';
 
 export * from './application';
 
@@ -32,7 +36,7 @@ if (require.main === module) {
       },
     },
   };
-  main(config).catch(err => {
+  main(config).catch((err) => {
     console.error('Cannot start the application.', err);
     process.exit(1);
   });
