@@ -7,6 +7,7 @@ const config = {
   index: 'catalog',
   version: 7,
   // defaultSize: '',
+  debug: process.env.APP_ENV === 'DEV',
   configuration: {
     node: process.env.ELASTIC_SEARCH_HOST,
     requestTimeout: Number(process.env.ELASTIC_SEARCH_REQUEST_TIMEOUT),
