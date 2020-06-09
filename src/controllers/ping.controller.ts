@@ -1,5 +1,7 @@
-import {Request, RestBindings, get, ResponseObject} from '@loopback/rest';
-import {inject} from '@loopback/context';
+import { Request, RestBindings, get, ResponseObject } from '@loopback/rest';
+import { inject } from '@loopback/context';
+import { repository } from '@loopback/repository';
+import { CategoryRepository } from '../repositories';
 
 /**
  * OpenAPI response for ping()
@@ -12,13 +14,13 @@ const PING_RESPONSE: ResponseObject = {
         type: 'object',
         title: 'PingResponse',
         properties: {
-          greeting: {type: 'string'},
-          date: {type: 'string'},
-          url: {type: 'string'},
+          greeting: { type: 'string' },
+          date: { type: 'string' },
+          url: { type: 'string' },
           headers: {
             type: 'object',
             properties: {
-              'Content-Type': {type: 'string'},
+              'Content-Type': { type: 'string' },
             },
             additionalProperties: true,
           },
@@ -32,7 +34,13 @@ const PING_RESPONSE: ResponseObject = {
  * A simple controller to bounce back http requests
  */
 export class PingController {
-  constructor(@inject(RestBindings.Http.REQUEST) private req: Request) {}
+  constructor(
+    @inject(RestBindings.Http.REQUEST)
+    private req: Request,
+
+    @repository(CategoryRepository)
+    private categoryRepository: CategoryRepository,
+  ) {}
 
   // Map to `GET /ping`
   @get('/ping', {
@@ -48,5 +56,16 @@ export class PingController {
       url: this.req.url,
       headers: Object.assign({}, this.req.headers),
     };
+  }
+
+  @get('/categories')
+  async index() {
+    await this.categoryRepository.create({
+      id: String(Date.now()),
+      name: `My category ${Date.now()}`,
+      description: `My description ${Date.now()}`,
+    });
+
+    return this.categoryRepository.find();
   }
 }
