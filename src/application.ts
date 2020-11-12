@@ -3,9 +3,11 @@ import { Application, ApplicationConfig } from '@loopback/core';
 import { RepositoryMixin } from '@loopback/repository';
 import { RestComponent, RestServer } from '@loopback/rest';
 import { ServiceMixin } from '@loopback/service-proxy';
+import { RestExplorerBindings } from '@loopback/rest-explorer';
 import path from 'path';
 import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
+import { RestExplorerComponent } from './components/rest-explorer.component';
 
 export { ApplicationConfig };
 
@@ -26,10 +28,10 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
     restServer.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
-    // this.configure(RestExplorerBindings.COMPONENT).to({
-    //   path: '/explorer',
-    // });
-    // this.component(RestExplorerComponent);
+    this.configure(RestExplorerBindings.COMPONENT).to({
+      path: '/explorer',
+    });
+    this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here
