@@ -21,30 +21,26 @@ export class RabbitmqServer extends Context implements Server {
 
   async boot(): Promise<void> {
     const channel: Channel = await this.conn.createChannel();
-    const queue: AssertQueue = await channel.assertQueue('first-queue');
+    const queue: AssertQueue = await channel.assertQueue(
+      'microservice-catalog/sync-videos',
+    );
     const exchange: AssertExchange = await channel.assertExchange(
-      'amq.direct',
-      'direct',
+      'amq.topic',
+      'topic',
     );
 
-    await channel.bindQueue(queue.queue, exchange.exchange, 'my-routing-key');
-
-    const result = channel.sendToQueue(
-      'first-queue',
-      Buffer.from('Hello world!'),
-    );
-
-    channel.publish(
-      'amq.direct',
-      'my-routing-key',
-      Buffer.from('Published by routing key...'),
-    );
+    await channel.bindQueue(queue.queue, exchange.exchange, 'model.*.*');
 
     channel.consume(queue.queue, (message) => {
-      console.log(message?.content.toString());
-    });
+      if (!message) {
+        return;
+      }
 
-    console.log(result);
+      const [model, event] = message.fields.routingKey.split('.').slice(1);
+
+      console.log(JSON.parse(message.content.toString()));
+      console.log(model, event);
+    });
   }
 
   async stop(): Promise<void> {
