@@ -3,10 +3,20 @@ import { Server } from '@loopback/core';
 import { Channel, connect, Connection, Replies } from 'amqplib';
 import AssertQueue = Replies.AssertQueue;
 import AssertExchange = Replies.AssertExchange;
+import { repository } from '@loopback/repository';
+import { CategoryRepository } from '../repositories';
+import { Category } from '../models';
 
 export class RabbitmqServer extends Context implements Server {
   private _listening: boolean;
   conn: Connection;
+
+  constructor(
+    @repository(CategoryRepository)
+    private categoryRepository: CategoryRepository,
+  ) {
+    super();
+  }
 
   async start(): Promise<void> {
     this.conn = await connect({
@@ -36,11 +46,29 @@ export class RabbitmqServer extends Context implements Server {
         return;
       }
 
+      const data = JSON.parse(message.content.toString());
       const [model, event] = message.fields.routingKey.split('.').slice(1);
 
-      console.log(JSON.parse(message.content.toString()));
-      console.log(model, event);
+      this.sync({ model, event, data });
     });
+  }
+
+  async sync({
+    model,
+    event,
+    data,
+  }: {
+    model: string;
+    event: string;
+    data: Category;
+  }) {
+    if (model === 'category') {
+      switch (event) {
+        case 'created':
+          await this.categoryRepository.create(data);
+          break;
+      }
+    }
   }
 
   async stop(): Promise<void> {
