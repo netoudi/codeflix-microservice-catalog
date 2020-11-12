@@ -70,6 +70,12 @@ export class RabbitmqServer extends Context implements Server {
         case 'created':
           await this.categoryRepository.create(data);
           break;
+        case 'updated':
+          await this.categoryRepository.updateById(data.id, data);
+          break;
+        case 'deleted':
+          await this.categoryRepository.deleteById(data.id);
+          break;
       }
     }
   }
