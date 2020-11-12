@@ -10,6 +10,7 @@ import { Category } from '../models';
 export class RabbitmqServer extends Context implements Server {
   private _listening: boolean;
   conn: Connection;
+  channel: Channel;
 
   constructor(
     @repository(CategoryRepository)
@@ -30,18 +31,18 @@ export class RabbitmqServer extends Context implements Server {
   }
 
   async boot(): Promise<void> {
-    const channel: Channel = await this.conn.createChannel();
-    const queue: AssertQueue = await channel.assertQueue(
+    this.channel = await this.conn.createChannel();
+    const queue: AssertQueue = await this.channel.assertQueue(
       'microservice-catalog/sync-videos',
     );
-    const exchange: AssertExchange = await channel.assertExchange(
+    const exchange: AssertExchange = await this.channel.assertExchange(
       'amq.topic',
       'topic',
     );
 
-    await channel.bindQueue(queue.queue, exchange.exchange, 'model.*.*');
+    await this.channel.bindQueue(queue.queue, exchange.exchange, 'model.*.*');
 
-    channel.consume(queue.queue, (message) => {
+    this.channel.consume(queue.queue, (message) => {
       if (!message) {
         return;
       }
@@ -49,7 +50,9 @@ export class RabbitmqServer extends Context implements Server {
       const data = JSON.parse(message.content.toString());
       const [model, event] = message.fields.routingKey.split('.').slice(1);
 
-      this.sync({ model, event, data });
+      this.sync({ model, event, data })
+        .then(() => this.channel.ack(message))
+        .catch(() => this.channel.reject(message, false));
     });
   }
 
