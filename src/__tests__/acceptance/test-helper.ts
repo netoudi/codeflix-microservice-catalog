@@ -1,4 +1,4 @@
-import {CodeflixMicroserviceCatalogApplication} from '../..';
+import { CodeflixMicroserviceCatalogApplication } from '../..';
 import {
   createRestAppClient,
   givenHttpServerConfig,
@@ -21,9 +21,11 @@ export async function setupApplication(): Promise<AppWithClient> {
   await app.boot();
   await app.start();
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const client = createRestAppClient(app);
 
-  return {app, client};
+  return { app, client };
 }
 
 export interface AppWithClient {
