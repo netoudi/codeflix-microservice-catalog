@@ -1,6 +1,6 @@
 import { Entity, model, property } from '@loopback/repository';
 
-@model({ settings: { strict: false } })
+@model({ settings: { strict: true } })
 export class Category extends Entity {
   @property({
     type: 'string',
@@ -18,8 +18,29 @@ export class Category extends Entity {
 
   @property({
     type: 'string',
+    required: false,
+    default: '',
   })
   description?: string;
+
+  @property({
+    type: 'boolean',
+    required: false,
+    default: true,
+  })
+  is_active?: boolean;
+
+  @property({
+    type: 'date',
+    required: true,
+  })
+  created_at: string;
+
+  @property({
+    type: 'date',
+    required: true,
+  })
+  updated_at: string;
 
   // Define well-known properties here
 

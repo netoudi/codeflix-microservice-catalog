@@ -64,6 +64,9 @@ export class PingController {
       id: String(Date.now()),
       name: `My category ${Date.now()}`,
       description: `My description ${Date.now()}`,
+      is_active: [true, false][Math.floor(Math.random() * 2)],
+      created_at: Date().toString(),
+      updated_at: Date().toString(),
     });
 
     return this.categoryRepository.find();

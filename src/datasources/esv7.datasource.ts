@@ -13,7 +13,35 @@ const config = {
     requestTimeout: Number(process.env.ELASTIC_SEARCH_REQUEST_TIMEOUT),
     pingTimeout: Number(process.env.ELASTIC_SEARCH_PING_TIMEOUT),
   },
-  mappingProperties: {},
+  mappingProperties: {
+    docType: {
+      type: 'keyword',
+    },
+    id: {
+      type: 'keyword',
+    },
+    name: {
+      type: 'text', // analyzed
+      fields: {
+        keyword: {
+          type: 'keyword',
+          ignore_above: 256,
+        },
+      },
+    },
+    description: {
+      type: 'text', // analyzed
+    },
+    is_active: {
+      type: 'boolean',
+    },
+    created_at: {
+      type: 'date',
+    },
+    updated_at: {
+      type: 'date',
+    },
+  },
 };
 
 // Observe application's life cycle to disconnect the datasource when
