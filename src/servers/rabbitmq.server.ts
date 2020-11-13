@@ -1,5 +1,6 @@
 import { Context, inject } from '@loopback/context';
-import { CoreBindings, Server } from '@loopback/core';
+import { Application, CoreBindings, Server } from '@loopback/core';
+import { MetadataInspector } from '@loopback/metadata';
 import { Channel, ConfirmChannel, Options, Replies } from 'amqplib';
 import { repository } from '@loopback/repository';
 import { CategoryRepository } from '../repositories';
@@ -11,6 +12,11 @@ import {
   ChannelWrapper,
   connect,
 } from 'amqp-connection-manager';
+import {
+  RABBITMQ_SUBSCRIBE_DECORATOR,
+  RabbitmqSubscribeMetadata,
+} from '../decorators';
+import { CategorySyncService } from '../services';
 import AssertQueue = Replies.AssertQueue;
 import AssertExchange = Replies.AssertExchange;
 
@@ -31,12 +37,14 @@ export class RabbitmqServer extends Context implements Server {
   channel: Channel;
 
   constructor(
+    @inject(CoreBindings.APPLICATION_INSTANCE)
+    public app: Application,
     @repository(CategoryRepository)
     private categoryRepository: CategoryRepository,
     @inject(RabbitmqBindings.CONFIG)
     private config: RabbitmqConfig,
   ) {
-    super();
+    super(app);
     console.log(CoreBindings.APPLICATION_CONFIG);
     console.log(config);
   }
@@ -60,6 +68,16 @@ export class RabbitmqServer extends Context implements Server {
     await this.setupExchanges();
     this._listening = true;
     // this.boot();
+
+    const service = this.getSync<CategorySyncService>(
+      'services.CategorySyncService',
+    );
+
+    const metadata = MetadataInspector.getAllMethodMetadata<
+      RabbitmqSubscribeMetadata
+    >(RABBITMQ_SUBSCRIBE_DECORATOR, service);
+
+    console.log(metadata);
   }
 
   private async setupExchanges() {
