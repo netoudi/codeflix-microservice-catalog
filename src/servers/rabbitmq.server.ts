@@ -1,23 +1,35 @@
 import { Context, inject } from '@loopback/context';
 import { CoreBindings, Server } from '@loopback/core';
-import { Channel, connect, Connection, Replies } from 'amqplib';
+import { Channel, Connection, Replies } from 'amqplib';
 import { repository } from '@loopback/repository';
 import { CategoryRepository } from '../repositories';
 import { Category } from '../models';
 import { RabbitmqBindings } from '../keys';
+import {
+  AmqpConnectionManager,
+  AmqpConnectionManagerOptions,
+  ChannelWrapper,
+  connect,
+} from 'amqp-connection-manager';
 import AssertQueue = Replies.AssertQueue;
 import AssertExchange = Replies.AssertExchange;
 
+export interface RabbitmqConfig {
+  uri: string;
+  connOptions?: AmqpConnectionManagerOptions;
+}
+
 export class RabbitmqServer extends Context implements Server {
   private _listening: boolean;
-  conn: Connection;
+  private _conn: AmqpConnectionManager;
+  private _channelManager: ChannelWrapper;
   channel: Channel;
 
   constructor(
     @repository(CategoryRepository)
     private categoryRepository: CategoryRepository,
     @inject(RabbitmqBindings.CONFIG)
-    private config: { uri: string },
+    private config: RabbitmqConfig,
   ) {
     super();
     console.log(CoreBindings.APPLICATION_CONFIG);
@@ -25,13 +37,27 @@ export class RabbitmqServer extends Context implements Server {
   }
 
   async start(): Promise<void> {
-    this.conn = await connect(this.config.uri);
+    this._conn = connect([this.config.uri], this.config.connOptions);
+    this._channelManager = this.conn.createChannel();
+
+    this._channelManager.on('connect', () => {
+      this._listening = true;
+      console.log('Successfully connected a RabbitMQ channel');
+    });
+
+    this._channelManager.on('error', (err, { name }) => {
+      this._listening = false;
+      console.log(
+        `Failed to setup a RabbitMQ channel - name: ${name} | error: ${err.message}`,
+      );
+    });
 
     this._listening = true;
-    this.boot();
+    // this.boot();
   }
 
   async boot(): Promise<void> {
+    // @ts-ignore
     this.channel = await this.conn.createChannel();
     const queue: AssertQueue = await this.channel.assertQueue(
       'microservice-catalog/sync-videos',
@@ -89,5 +115,9 @@ export class RabbitmqServer extends Context implements Server {
 
   get listening(): boolean {
     return this._listening;
+  }
+
+  get conn(): AmqpConnectionManager {
+    return this._conn;
   }
 }
