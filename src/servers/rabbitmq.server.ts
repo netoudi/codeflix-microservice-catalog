@@ -34,6 +34,12 @@ export type SubscribersMetadata = {
   metadata: RabbitmqSubscribeMetadata;
 }[];
 
+export type ConsumeMetadata = {
+  channel: ConfirmChannel;
+  queue: string;
+  method: Function;
+};
+
 export class RabbitmqServer extends Context implements Server {
   private _listening: boolean;
   private _conn: AmqpConnectionManager;
@@ -119,6 +125,12 @@ export class RabbitmqServer extends Context implements Server {
             channel.bindQueue(assertQueue.queue, exchange, key),
           ),
         );
+
+        await this.consume({
+          channel,
+          queue: assertQueue.queue,
+          method: item.method,
+        });
       });
     });
   }
@@ -154,6 +166,32 @@ export class RabbitmqServer extends Context implements Server {
         acc.push(...cur);
         return acc;
       }, []);
+  }
+
+  private async consume({ channel, queue, method }: ConsumeMetadata) {
+    await channel.consume(queue, async (message) => {
+      try {
+        if (!message) throw new Error('Received null message');
+
+        const content = message.content;
+
+        if (content) {
+          let data;
+
+          try {
+            data = JSON.parse(content.toString());
+          } catch (e) {
+            data = null;
+          }
+
+          console.log(data);
+          await method({ data, message, channel });
+          channel.ack(message);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    });
   }
 
   async boot(): Promise<void> {
