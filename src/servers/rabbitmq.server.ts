@@ -1,4 +1,4 @@
-import { Context, inject } from '@loopback/context';
+import { Binding, Context, inject } from '@loopback/context';
 import { Application, CoreBindings, Server } from '@loopback/core';
 import { MetadataInspector } from '@loopback/metadata';
 import { Channel, ConfirmChannel, Options, Replies } from 'amqplib';
@@ -16,7 +16,6 @@ import {
   RABBITMQ_SUBSCRIBE_DECORATOR,
   RabbitmqSubscribeMetadata,
 } from '../decorators';
-import { CategorySyncService } from '../services';
 import AssertQueue = Replies.AssertQueue;
 import AssertExchange = Replies.AssertExchange;
 
@@ -66,18 +65,15 @@ export class RabbitmqServer extends Context implements Server {
     });
 
     await this.setupExchanges();
-    this._listening = true;
-    // this.boot();
 
-    const service = this.getSync<CategorySyncService>(
-      'services.CategorySyncService',
-    );
+    const subscribers = this.getSubscribers();
 
-    const metadata = MetadataInspector.getAllMethodMetadata<
-      RabbitmqSubscribeMetadata
-    >(RABBITMQ_SUBSCRIBE_DECORATOR, service);
+    console.log(subscribers);
 
-    console.log(metadata);
+    // @ts-ignore
+    console.log(subscribers[0][0]['method']());
+    // @ts-ignore
+    console.log(subscribers[0][1]['method']());
   }
 
   private async setupExchanges() {
@@ -95,6 +91,33 @@ export class RabbitmqServer extends Context implements Server {
           );
         }),
       );
+    });
+  }
+
+  private getSubscribers() {
+    const bindings: Array<Readonly<Binding>> = this.find('services.*');
+
+    return bindings.map((binding) => {
+      const metadata = MetadataInspector.getAllMethodMetadata<
+        RabbitmqSubscribeMetadata
+      >(RABBITMQ_SUBSCRIBE_DECORATOR, binding.valueConstructor?.prototype);
+
+      if (!metadata) return [];
+
+      const methods = [];
+
+      for (const methodName in metadata) {
+        if (!Object.prototype.hasOwnProperty.call(metadata, methodName)) return;
+
+        const service = this.getSync(binding.key) as any;
+
+        methods.push({
+          method: service[methodName].bind(service),
+          metadata: metadata[methodName],
+        });
+      }
+
+      return methods;
     });
   }
 
