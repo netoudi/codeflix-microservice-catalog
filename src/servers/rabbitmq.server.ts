@@ -29,6 +29,11 @@ export interface RabbitmqConfig {
   }[];
 }
 
+export type SubscribersMetadata = {
+  method: Function;
+  metadata: RabbitmqSubscribeMetadata;
+}[];
+
 export class RabbitmqServer extends Context implements Server {
   private _listening: boolean;
   private _conn: AmqpConnectionManager;
@@ -65,15 +70,16 @@ export class RabbitmqServer extends Context implements Server {
     });
 
     await this.setupExchanges();
+    await this.bindSubscribers();
 
     const subscribers = this.getSubscribers();
 
     console.log(subscribers);
 
     // @ts-ignore
-    console.log(subscribers[0][0]['method']());
+    console.log(subscribers[0]['method']());
     // @ts-ignore
-    console.log(subscribers[0][1]['method']());
+    console.log(subscribers[1]['method']());
   }
 
   private async setupExchanges() {
@@ -94,31 +100,60 @@ export class RabbitmqServer extends Context implements Server {
     });
   }
 
-  private getSubscribers() {
+  private async bindSubscribers() {
+    return this.getSubscribers().map(async (item) => {
+      await this.channelManager.addSetup(async (channel: ConfirmChannel) => {
+        const { exchange, queue, routingKey, queueOptions } = item.metadata;
+
+        const assertQueue = await channel.assertQueue(
+          queue ?? '',
+          queueOptions ?? undefined,
+        );
+
+        const routingKeys = Array.isArray(routingKey)
+          ? routingKey
+          : [routingKey];
+
+        await Promise.all(
+          routingKeys.map((key) =>
+            channel.bindQueue(assertQueue.queue, exchange, key),
+          ),
+        );
+      });
+    });
+  }
+
+  private getSubscribers(): SubscribersMetadata {
     const bindings: Array<Readonly<Binding>> = this.find('services.*');
 
-    return bindings.map((binding) => {
-      const metadata = MetadataInspector.getAllMethodMetadata<
-        RabbitmqSubscribeMetadata
-      >(RABBITMQ_SUBSCRIBE_DECORATOR, binding.valueConstructor?.prototype);
+    return bindings
+      .map((binding) => {
+        const metadata = MetadataInspector.getAllMethodMetadata<
+          RabbitmqSubscribeMetadata
+        >(RABBITMQ_SUBSCRIBE_DECORATOR, binding.valueConstructor?.prototype);
 
-      if (!metadata) return [];
+        if (!metadata) return [];
 
-      const methods = [];
+        const methods = [];
 
-      for (const methodName in metadata) {
-        if (!Object.prototype.hasOwnProperty.call(metadata, methodName)) return;
+        for (const methodName in metadata) {
+          if (!Object.prototype.hasOwnProperty.call(metadata, methodName))
+            return;
 
-        const service = this.getSync(binding.key) as any;
+          const service = this.getSync(binding.key) as any;
 
-        methods.push({
-          method: service[methodName].bind(service),
-          metadata: metadata[methodName],
-        });
-      }
+          methods.push({
+            method: service[methodName].bind(service),
+            metadata: metadata[methodName],
+          });
+        }
 
-      return methods;
-    });
+        return methods;
+      })
+      .reduce((acc: any, cur: any) => {
+        acc.push(...cur);
+        return acc;
+      }, []);
   }
 
   async boot(): Promise<void> {
