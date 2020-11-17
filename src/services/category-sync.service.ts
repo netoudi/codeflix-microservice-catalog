@@ -2,6 +2,7 @@ import { bind, BindingScope } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { rabbitmqSubscribe } from '../decorators';
 import { CategoryRepository } from '../repositories';
+import { ResultMetadata } from '../servers';
 
 @bind({ scope: BindingScope.TRANSIENT })
 export class CategorySyncService {
@@ -12,21 +13,22 @@ export class CategorySyncService {
 
   @rabbitmqSubscribe({
     exchange: 'amq.topic',
-    queue: 'x1',
+    queue: 'microservice-catalog/sync-category',
     routingKey: 'model.category.*',
   })
-  handle(data: any) {
-    console.log(data);
-    console.log(this.categoryRepository.entityClass, 'handle');
-  }
+  async handle({ data, message }: ResultMetadata) {
+    const [event] = message.fields.routingKey.split('.').slice(2);
 
-  @rabbitmqSubscribe({
-    exchange: 'amq.topic',
-    queue: 'x2',
-    routingKey: 'model.category1.*',
-  })
-  handle1(data: any) {
-    console.log(data);
-    console.log(this.categoryRepository.entityClass, 'handle1');
+    switch (event) {
+      case 'created':
+        await this.categoryRepository.create(data);
+        break;
+      case 'updated':
+        await this.categoryRepository.updateById(data.id, data);
+        break;
+      case 'deleted':
+        await this.categoryRepository.deleteById(data.id);
+        break;
+    }
   }
 }
