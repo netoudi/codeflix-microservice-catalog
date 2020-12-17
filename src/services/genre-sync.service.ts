@@ -1,33 +1,33 @@
 import { bind, BindingScope } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { CastMemberRepository } from '../repositories';
+import { GenreRepository } from '../repositories';
 import { rabbitmqSubscribe } from '../decorators';
 import { ResultMetadata } from '../servers';
 
 @bind({ scope: BindingScope.TRANSIENT })
-export class CastMemberService {
+export class GenreSyncService {
   constructor(
-    @repository(CastMemberRepository)
-    private castMemberRepository: CastMemberRepository,
+    @repository(GenreRepository)
+    private genreRepository: GenreRepository,
   ) {}
 
   @rabbitmqSubscribe({
     exchange: 'amq.topic',
-    queue: 'microservice-catalog/sync-cast-member',
-    routingKey: 'model.cast_member.*',
+    queue: 'microservice-catalog/sync-genre',
+    routingKey: 'model.genre.*',
   })
   async handle({ data, message }: ResultMetadata) {
     const [event] = message.fields.routingKey.split('.').slice(2);
 
     switch (event) {
       case 'created':
-        await this.castMemberRepository.create(data);
+        await this.genreRepository.create(data);
         break;
       case 'updated':
-        await this.castMemberRepository.updateById(data.id, data);
+        await this.genreRepository.updateById(data.id, data);
         break;
       case 'deleted':
-        await this.castMemberRepository.deleteById(data.id);
+        await this.genreRepository.deleteById(data.id);
         break;
     }
   }

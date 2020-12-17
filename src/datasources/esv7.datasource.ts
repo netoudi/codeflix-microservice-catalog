@@ -32,6 +32,9 @@ const config = {
     description: {
       type: 'text', // analyzed
     },
+    type: {
+      type: 'byte',
+    },
     is_active: {
       type: 'boolean',
     },
