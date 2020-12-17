@@ -8,6 +8,7 @@ import path from 'path';
 import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
 import { RestExplorerComponent } from './components/rest-explorer.component';
+import { Category } from './models';
 
 export { ApplicationConfig };
 

@@ -3,13 +3,16 @@ import { repository } from '@loopback/repository';
 import { CastMemberRepository } from '../repositories';
 import { rabbitmqSubscribe } from '../decorators';
 import { ResultMetadata } from '../servers';
+import { BaseModelSyncService } from './base-model-sync.service';
 
-@bind({ scope: BindingScope.TRANSIENT })
-export class CastMemberSyncService {
+@bind({ scope: BindingScope.SINGLETON })
+export class CastMemberSyncService extends BaseModelSyncService {
   constructor(
     @repository(CastMemberRepository)
     private castMemberRepository: CastMemberRepository,
-  ) {}
+  ) {
+    super();
+  }
 
   @rabbitmqSubscribe({
     exchange: 'amq.topic',
@@ -17,18 +20,10 @@ export class CastMemberSyncService {
     routingKey: 'model.cast_member.*',
   })
   async handle({ data, message }: ResultMetadata) {
-    const [event] = message.fields.routingKey.split('.').slice(2);
-
-    switch (event) {
-      case 'created':
-        await this.castMemberRepository.create(data);
-        break;
-      case 'updated':
-        await this.castMemberRepository.updateById(data.id, data);
-        break;
-      case 'deleted':
-        await this.castMemberRepository.deleteById(data.id);
-        break;
-    }
+    await this.sync({
+      repository: this.castMemberRepository,
+      data,
+      message,
+    });
   }
 }
