@@ -19,7 +19,7 @@ export abstract class BaseModelSyncService {
         await repository.create(entity);
         break;
       case 'updated':
-        await repository.updateById(id, entity);
+        await this.updateOrCreate({ repository, id, entity });
         break;
       case 'deleted':
         await repository.deleteById(id);
@@ -39,5 +39,21 @@ export abstract class BaseModelSyncService {
       data,
       Object.keys(repository.entityClass.definition.properties),
     );
+  }
+
+  protected async updateOrCreate({
+    repository,
+    id,
+    entity,
+  }: {
+    repository: DefaultCrudRepository<any, any>;
+    id: string;
+    entity: any;
+  }) {
+    const exists = await repository.exists(id);
+
+    return exists
+      ? repository.updateById(id, entity)
+      : repository.create(entity);
   }
 }
