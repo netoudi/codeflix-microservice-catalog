@@ -59,20 +59,23 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
 
     try {
       await validator.validate({
-        data: {},
+        data: {
+          id: ['12', '13'],
+          // id: ['1-cat', '2-cat'],
+        },
         entityClass: Category,
       });
     } catch (e) {
       console.dir(e, { depth: 8 });
     }
 
-    try {
-      await validator.validate({
-        data: {},
-        entityClass: Genre,
-      });
-    } catch (e) {
-      console.dir(e, { depth: 8 });
-    }
+    // try {
+    //   await validator.validate({
+    //     data: {},
+    //     entityClass: Genre,
+    //   });
+    // } catch (e) {
+    //   console.dir(e, { depth: 8 });
+    // }
   }
 }
