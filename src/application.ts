@@ -7,7 +7,7 @@ import { RestExplorerBindings } from '@loopback/rest-explorer';
 import path from 'path';
 import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
-import { RestExplorerComponent } from './components/rest-explorer.component';
+import { RestExplorerComponent, ValidatorsComponent } from './components';
 import { Category, Genre } from './models';
 import { ValidatorService } from './services/validator.service';
 
@@ -34,6 +34,7 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
       path: '/explorer',
     });
     this.component(RestExplorerComponent);
+    this.component(ValidatorsComponent);
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here
