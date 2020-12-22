@@ -9,6 +9,7 @@ import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
 import { RestExplorerComponent } from './components/rest-explorer.component';
 import { Category } from './models';
+import { ValidatorService } from './services/validator.service';
 
 export { ApplicationConfig };
 
@@ -46,5 +47,22 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
     };
 
     this.server(RabbitmqServer);
+  }
+
+  async boot() {
+    await super.boot();
+
+    const validator = this.getSync<ValidatorService>(
+      'services.ValidatorService',
+    );
+
+    try {
+      await validator.validate({
+        data: {},
+        entityClass: Category,
+      });
+    } catch (e) {
+      console.dir(e, { depth: 8 });
+    }
   }
 }
