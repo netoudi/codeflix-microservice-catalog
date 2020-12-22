@@ -8,7 +8,7 @@ import path from 'path';
 import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
 import { RestExplorerComponent } from './components/rest-explorer.component';
-import { Category } from './models';
+import { Category, Genre } from './models';
 import { ValidatorService } from './services/validator.service';
 
 export { ApplicationConfig };
@@ -60,6 +60,15 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
       await validator.validate({
         data: {},
         entityClass: Category,
+      });
+    } catch (e) {
+      console.dir(e, { depth: 8 });
+    }
+
+    try {
+      await validator.validate({
+        data: {},
+        entityClass: Genre,
       });
     } catch (e) {
       console.dir(e, { depth: 8 });
