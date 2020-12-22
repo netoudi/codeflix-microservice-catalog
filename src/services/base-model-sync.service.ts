@@ -1,6 +1,7 @@
 import { DefaultCrudRepository } from '@loopback/repository';
 import { Message } from 'amqplib';
 import { pick } from 'lodash';
+import { ValidatorService } from './validator.service';
 
 export interface SyncOptions {
   repository: DefaultCrudRepository<any, any>;
@@ -9,6 +10,8 @@ export interface SyncOptions {
 }
 
 export abstract class BaseModelSyncService {
+  protected constructor(public validatorService: ValidatorService) {}
+
   async sync({ repository, data, message }: SyncOptions) {
     const { id } = data || {};
     const action = this.getAction(message);
@@ -16,6 +19,10 @@ export abstract class BaseModelSyncService {
 
     switch (action) {
       case 'created':
+        await this.validatorService.validate({
+          data: entity,
+          entityClass: repository.entityClass,
+        });
         await repository.create(entity);
         break;
       case 'updated':
@@ -51,6 +58,12 @@ export abstract class BaseModelSyncService {
     entity: any;
   }) {
     const exists = await repository.exists(id);
+
+    await this.validatorService.validate({
+      data: entity,
+      entityClass: repository.entityClass,
+      ...(exists && { options: { partial: true } }),
+    });
 
     return exists
       ? repository.updateById(id, entity)

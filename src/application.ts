@@ -53,21 +53,21 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
   async boot() {
     await super.boot();
 
-    const validator = this.getSync<ValidatorService>(
-      'services.ValidatorService',
-    );
+    // const validator = this.getSync<ValidatorService>(
+    //   'services.ValidatorService',
+    // );
 
-    try {
-      await validator.validate({
-        data: {
-          id: ['12', '13'],
-          // id: ['1-cat', '2-cat'],
-        },
-        entityClass: Category,
-      });
-    } catch (e) {
-      console.dir(e, { depth: 8 });
-    }
+    // try {
+    //   await validator.validate({
+    //     data: {
+    //       id: ['12', '13'],
+    //       // id: ['1-cat', '2-cat'],
+    //     },
+    //     entityClass: Category,
+    //   });
+    // } catch (e) {
+    //   console.dir(e, { depth: 8 });
+    // }
 
     // try {
     //   await validator.validate({
