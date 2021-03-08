@@ -1,4 +1,7 @@
-import { DefaultCrudRepository } from '@loopback/repository';
+import {
+  DefaultCrudRepository,
+  EntityNotFoundError,
+} from '@loopback/repository';
 import { Message } from 'amqplib';
 import { pick } from 'lodash';
 import { ValidatorService } from './validator.service';
@@ -11,8 +14,10 @@ export interface SyncOptions {
 
 export interface SyncRelationOptions {
   id: string;
+  relationName: string;
   relationIds: string[];
   relationRepository: DefaultCrudRepository<any, any>;
+  repository: DefaultCrudRepository<any, any>;
   message: Message;
 }
 
@@ -79,15 +84,37 @@ export abstract class BaseModelSyncService {
 
   async syncRelation({
     id,
+    relationName,
     relationIds,
     relationRepository,
+    repository,
   }: SyncRelationOptions) {
+    const relationFields = Object.keys(
+      repository.modelClass.definition.properties[relationName].jsonSchema.items
+        .properties,
+    ).reduce((obj: any, field: string) => {
+      obj[field] = true;
+      return obj;
+    }, {});
+
     const collection = await relationRepository.find({
       where: {
         or: relationIds.map((relationId) => ({ id: relationId })),
       },
+      fields: relationFields,
     });
 
-    console.dir(collection, { depth: 8 });
+    if (!collection.length) {
+      const error = new EntityNotFoundError(
+        relationRepository.entityClass,
+        relationIds,
+      );
+      error.name = 'EntityNotFound';
+      throw error;
+    }
+
+    await repository.updateById(id, { [relationName]: collection });
+
+    console.dir({ relationFields, collection }, { depth: 8 });
   }
 }
