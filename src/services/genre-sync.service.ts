@@ -1,6 +1,6 @@
 import { bind, BindingScope, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
-import { GenreRepository } from '../repositories';
+import { CategoryRepository, GenreRepository } from '../repositories';
 import { rabbitmqSubscribe } from '../decorators';
 import { ResultMetadata } from '../servers';
 import { BaseModelSyncService } from './base-model-sync.service';
@@ -11,6 +11,8 @@ export class GenreSyncService extends BaseModelSyncService {
   constructor(
     @repository(GenreRepository)
     private genreRepository: GenreRepository,
+    @repository(CategoryRepository)
+    private categoryRepository: CategoryRepository,
     @service(ValidatorService)
     private validator: ValidatorService,
   ) {
@@ -26,6 +28,20 @@ export class GenreSyncService extends BaseModelSyncService {
     await this.sync({
       repository: this.genreRepository,
       data,
+      message,
+    });
+  }
+
+  @rabbitmqSubscribe({
+    exchange: 'amq.topic',
+    queue: 'microservice-catalog/sync-genre',
+    routingKey: 'model.genre_categories.*',
+  })
+  async handleCategories({ data, message }: ResultMetadata) {
+    await this.syncRelation({
+      id: data.id,
+      relationIds: data.relation_ids,
+      relationRepository: this.categoryRepository,
       message,
     });
   }

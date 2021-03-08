@@ -51,7 +51,7 @@ export type ConsumeMetadata = {
 };
 
 export type ResultMetadata = {
-  data: { id: string };
+  data: { id: string; relation_ids: string[] };
   message: ConsumeMessage;
   channel: ConfirmChannel;
 };
@@ -146,9 +146,10 @@ export class RabbitmqServer extends Context implements Server {
 
     return bindings
       .map((binding) => {
-        const metadata = MetadataInspector.getAllMethodMetadata<
-          RabbitmqSubscribeMetadata
-        >(RABBITMQ_SUBSCRIBE_DECORATOR, binding.valueConstructor?.prototype);
+        const metadata = MetadataInspector.getAllMethodMetadata<RabbitmqSubscribeMetadata>(
+          RABBITMQ_SUBSCRIBE_DECORATOR,
+          binding.valueConstructor?.prototype,
+        );
 
         if (!metadata) return [];
 

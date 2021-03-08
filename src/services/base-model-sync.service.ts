@@ -9,6 +9,13 @@ export interface SyncOptions {
   message: Message;
 }
 
+export interface SyncRelationOptions {
+  id: string;
+  relationIds: string[];
+  relationRepository: DefaultCrudRepository<any, any>;
+  message: Message;
+}
+
 export abstract class BaseModelSyncService {
   protected constructor(public validatorService: ValidatorService) {}
 
@@ -68,5 +75,19 @@ export abstract class BaseModelSyncService {
     return exists
       ? repository.updateById(id, entity)
       : repository.create(entity);
+  }
+
+  async syncRelation({
+    id,
+    relationIds,
+    relationRepository,
+  }: SyncRelationOptions) {
+    const collection = await relationRepository.find({
+      where: {
+        or: relationIds.map((relationId) => ({ id: relationId })),
+      },
+    });
+
+    console.dir(collection, { depth: 8 });
   }
 }
