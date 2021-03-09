@@ -89,13 +89,7 @@ export abstract class BaseModelSyncService {
     relationRepository,
     repository,
   }: SyncRelationOptions) {
-    const relationFields = Object.keys(
-      repository.modelClass.definition.properties[relationName].jsonSchema.items
-        .properties,
-    ).reduce((obj: any, field: string) => {
-      obj[field] = true;
-      return obj;
-    }, {});
+    const relationFields = this.getRelationFields(repository, relationName);
 
     const collection = await relationRepository.find({
       where: {
@@ -116,5 +110,18 @@ export abstract class BaseModelSyncService {
     await repository.updateById(id, { [relationName]: collection });
 
     console.dir({ relationFields, collection }, { depth: 8 });
+  }
+
+  protected getRelationFields(
+    repository: DefaultCrudRepository<any, any>,
+    relationName: string,
+  ) {
+    return Object.keys(
+      repository.modelClass.definition.properties[relationName].jsonSchema.items
+        .properties,
+    ).reduce((obj: any, field: string) => {
+      obj[field] = true;
+      return obj;
+    }, {});
   }
 }
