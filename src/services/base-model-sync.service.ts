@@ -107,7 +107,8 @@ export abstract class BaseModelSyncService {
       throw error;
     }
 
-    await repository.updateById(id, { [relationName]: collection });
+    // await repository.updateById(id, { [relationName]: collection });
+    await (repository as any).attachCategories(id, collection);
 
     console.dir({ relationFields, collection }, { depth: 8 });
   }
