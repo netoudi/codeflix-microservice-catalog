@@ -1,5 +1,5 @@
 import { DefaultCrudRepository } from '@loopback/repository';
-import { Genre, GenreRelations } from '../models';
+import { Genre, GenreRelations, SmallCategory } from '../models';
 import { Esv7DataSource } from '../datasources';
 import { inject } from '@loopback/core';
 import { Client, RequestParams } from 'es6';
@@ -37,6 +37,54 @@ export class GenreRepository extends DefaultCrudRepository<
           `,
           params: {
             categories: data,
+          },
+        },
+      },
+    };
+
+    const db: Client = this.dataSource.connector?.db;
+
+    await db.update_by_query(document);
+  }
+
+  async updateCategories(category: SmallCategory) {
+    const document: RequestParams.UpdateByQuery = {
+      index: this.dataSource.settings.index,
+      refresh: true,
+      body: {
+        query: {
+          bool: {
+            must: [
+              {
+                nested: {
+                  path: 'categories',
+                  query: {
+                    exists: {
+                      field: 'categories',
+                    },
+                  },
+                },
+              },
+              {
+                nested: {
+                  path: 'categories',
+                  query: {
+                    term: {
+                      'categories.id': category.id,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+        script: {
+          source: `
+            ctx._source['categories'].removeIf(i -> i.id == params['category']['id']);
+            ctx._source['categories'].add(params['category']);
+          `,
+          params: {
+            category: category,
           },
         },
       },

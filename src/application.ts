@@ -8,8 +8,7 @@ import path from 'path';
 import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
 import { RestExplorerComponent, ValidatorsComponent } from './components';
-import { Category, Genre } from './models';
-import { ValidatorService } from './services/validator.service';
+import { GenreRepository } from './repositories';
 
 export { ApplicationConfig };
 
@@ -52,6 +51,16 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
 
   async boot() {
     await super.boot();
+
+    const genreRepository = this.getSync<GenreRepository>(
+      'repositories.GenreRepository',
+    );
+
+    await genreRepository.updateCategories({
+      id: '1-cat',
+      name: 'Documentary UPDATE',
+      is_active: true,
+    });
 
     // const validator = this.getSync<ValidatorService>(
     //   'services.ValidatorService',
