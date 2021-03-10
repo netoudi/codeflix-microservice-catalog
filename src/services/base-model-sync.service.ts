@@ -111,7 +111,7 @@ export abstract class BaseModelSyncService {
     const action = this.getAction(message);
 
     if (action === 'attached') {
-      await (repository as any).attachCategories(id, collection);
+      await (repository as any).attachRelation(id, relationName, collection);
     }
   }
 
