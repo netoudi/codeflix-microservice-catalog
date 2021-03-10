@@ -9,6 +9,7 @@ import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
 import { RestExplorerComponent, ValidatorsComponent } from './components';
 import { GenreRepository } from './repositories';
+import { UpdateCategoryRelationObserver } from './observers';
 
 export { ApplicationConfig };
 
@@ -34,6 +35,8 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
     });
     this.component(RestExplorerComponent);
     this.component(ValidatorsComponent);
+
+    this.lifeCycleObserver(UpdateCategoryRelationObserver);
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here

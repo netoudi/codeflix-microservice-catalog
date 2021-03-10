@@ -1,8 +1,9 @@
 import { DefaultCrudRepository } from '@loopback/repository';
-import { Genre, GenreRelations, SmallCategory } from '../models';
+import { Genre, GenreRelations } from '../models';
 import { Esv7DataSource } from '../datasources';
 import { inject } from '@loopback/core';
 import { Client, RequestParams } from 'es6';
+import { pick } from 'lodash';
 
 export class GenreRepository extends DefaultCrudRepository<
   Genre,
@@ -47,7 +48,14 @@ export class GenreRepository extends DefaultCrudRepository<
     await db.update_by_query(document);
   }
 
-  async updateCategories(category: SmallCategory) {
+  async updateCategories(data: object) {
+    const fields = Object.keys(
+      this.modelClass.definition.properties['categories'].jsonSchema.items
+        .properties,
+    );
+
+    const category = pick(data, fields);
+
     const document: RequestParams.UpdateByQuery = {
       index: this.dataSource.settings.index,
       refresh: true,
@@ -70,7 +78,7 @@ export class GenreRepository extends DefaultCrudRepository<
                   path: 'categories',
                   query: {
                     term: {
-                      'categories.id': category.id,
+                      'categories.id': '1-cat',
                     },
                   },
                 },
