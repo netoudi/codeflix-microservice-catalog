@@ -1,6 +1,7 @@
 import { Entity } from '@loopback/repository/src/model';
 import { DefaultCrudRepository } from '@loopback/repository';
 import { Client, RequestParams } from 'es6';
+import { pick } from 'lodash';
 
 export class BaseRepository<
   T extends Entity,
@@ -31,6 +32,64 @@ export class BaseRepository<
           `,
           params: {
             [relationName]: data,
+          },
+        },
+      },
+    };
+
+    const db: Client = this.dataSource.connector?.db;
+
+    await db.update_by_query(document);
+  }
+
+  async updateRelation(
+    relationName: string,
+    data: { id: any; [key: string]: string },
+  ) {
+    const fields = Object.keys(
+      this.modelClass.definition.properties[relationName].jsonSchema.items
+        .properties,
+    );
+
+    const relation = pick(data, fields);
+
+    const document: RequestParams.UpdateByQuery = {
+      index: this.dataSource.settings.index,
+      refresh: true,
+      body: {
+        query: {
+          bool: {
+            must: [
+              {
+                nested: {
+                  path: relationName,
+                  query: {
+                    exists: {
+                      field: relationName,
+                    },
+                  },
+                },
+              },
+              {
+                nested: {
+                  path: relationName,
+                  query: {
+                    term: {
+                      [`${relationName}.id`]: relation.id,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+        script: {
+          source: `
+            ctx._source['${relationName}'].removeIf(i -> i.id == params['relation']['id']);
+            ctx._source['${relationName}'].add(params['relation']);
+          `,
+          params: {
+            relation: relation,
           },
         },
       },

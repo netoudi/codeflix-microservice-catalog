@@ -32,7 +32,7 @@ export class UpdateCategoryRelationObserver implements LifeCycleObserver {
       async ({ where, data, isNewInstance, ...other }) => {
         if (isNewInstance) return;
 
-        await this.genreRepository.updateCategories(data);
+        await this.genreRepository.updateRelation('categories', data);
       },
     );
   }
