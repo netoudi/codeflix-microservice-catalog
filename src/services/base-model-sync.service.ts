@@ -88,6 +88,7 @@ export abstract class BaseModelSyncService {
     relationIds,
     relationRepository,
     repository,
+    message,
   }: SyncRelationOptions) {
     const relationFields = this.getRelationFields(repository, relationName);
 
@@ -107,10 +108,11 @@ export abstract class BaseModelSyncService {
       throw error;
     }
 
-    // await repository.updateById(id, { [relationName]: collection });
-    await (repository as any).attachCategories(id, collection);
+    const action = this.getAction(message);
 
-    console.dir({ relationFields, collection }, { depth: 8 });
+    if (action === 'attached') {
+      await (repository as any).attachCategories(id, collection);
+    }
   }
 
   protected getRelationFields(
