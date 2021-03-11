@@ -91,6 +91,25 @@ export class RabbitmqServer extends Context implements Server {
     });
 
     await this.setupExchanges();
+
+    await this.channelManager.addSetup(async (channel: ConfirmChannel) => {
+      const assertExchange = await channel.assertExchange(
+        'dlx.amq.topic',
+        'topic',
+      );
+
+      const assertQueue = await channel.assertQueue('dlx.sync-videos', {
+        deadLetterExchange: 'amq.topic',
+        messageTtl: 20_000,
+      });
+
+      await channel.bindQueue(
+        assertQueue.queue,
+        assertExchange.exchange,
+        'model.category.*',
+      );
+    });
+
     await this.bindSubscribers();
   }
 
