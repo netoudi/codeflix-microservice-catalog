@@ -2,7 +2,7 @@ import { bind, BindingScope, service } from '@loopback/core';
 import { repository } from '@loopback/repository';
 import { rabbitmqSubscribe } from '../decorators';
 import { CategoryRepository } from '../repositories';
-import { ResponseEnum, ResultMetadata } from '../servers';
+import { ResultMetadata } from '../servers';
 import { BaseModelSyncService } from './base-model-sync.service';
 import { ValidatorService } from './validator.service';
 
@@ -26,8 +26,8 @@ export class CategorySyncService extends BaseModelSyncService {
     },
   })
   async handle({ data, message }: ResultMetadata) {
-    await this.sleep(10_000);
-    return ResponseEnum.NACK;
+    // await this.sleep(10_000);
+    // return ResponseEnum.NACK;
     await this.sync({
       repository: this.categoryRepository,
       data,
@@ -35,9 +35,9 @@ export class CategorySyncService extends BaseModelSyncService {
     });
   }
 
-  sleep(ms: number) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  }
+  // sleep(ms: number) {
+  //   return new Promise((resolve) => {
+  //     setTimeout(resolve, ms);
+  //   });
+  // }
 }

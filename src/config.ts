@@ -26,7 +26,7 @@ export default {
         },
         exchange: {
           name: 'dlx.amq.topic',
-          routingKey: 'model.category.*',
+          routingKey: 'model.*.*',
         },
       },
     ],
