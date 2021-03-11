@@ -36,6 +36,14 @@ export interface RabbitmqConfig {
     type: string;
     options?: Options.AssertExchange;
   }[];
+  queues?: {
+    name: string;
+    options?: Options.AssertQueue;
+    exchange: {
+      name: string;
+      routingKey: string;
+    };
+  }[];
   defaultHandlerError?: ResponseEnum;
 }
 
@@ -91,25 +99,7 @@ export class RabbitmqServer extends Context implements Server {
     });
 
     await this.setupExchanges();
-
-    await this.channelManager.addSetup(async (channel: ConfirmChannel) => {
-      const assertExchange = await channel.assertExchange(
-        'dlx.amq.topic',
-        'topic',
-      );
-
-      const assertQueue = await channel.assertQueue('dlx.sync-videos', {
-        deadLetterExchange: 'amq.topic',
-        messageTtl: 20_000,
-      });
-
-      await channel.bindQueue(
-        assertQueue.queue,
-        assertExchange.exchange,
-        'model.category.*',
-      );
-    });
-
+    await this.setupQueues();
     await this.bindSubscribers();
   }
 
@@ -125,6 +115,25 @@ export class RabbitmqServer extends Context implements Server {
             exchange.name,
             exchange.type,
             exchange.options,
+          );
+        }),
+      );
+    });
+  }
+
+  private async setupQueues() {
+    return this.channelManager.addSetup(async (channel: ConfirmChannel) => {
+      if (!this.config.queues) {
+        return;
+      }
+
+      await Promise.all(
+        this.config.queues.map(async (queue) => {
+          await channel.assertQueue(queue.name, queue.options);
+          await channel.bindQueue(
+            queue.name,
+            queue.exchange.name,
+            queue.exchange.routingKey,
           );
         }),
       );
