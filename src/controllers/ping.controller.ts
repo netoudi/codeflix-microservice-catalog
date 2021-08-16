@@ -1,4 +1,4 @@
-import { Request, RestBindings, get, ResponseObject } from '@loopback/rest';
+import { get, Request, ResponseObject, RestBindings } from '@loopback/rest';
 import { inject } from '@loopback/context';
 import { repository } from '@loopback/repository';
 import { CategoryRepository } from '../repositories';
@@ -58,17 +58,17 @@ export class PingController {
     };
   }
 
-  @get('/categories')
-  async index() {
-    await this.categoryRepository.create({
-      id: String(Date.now()),
-      name: `My category ${Date.now()}`,
-      description: `My description ${Date.now()}`,
-      is_active: [true, false][Math.floor(Math.random() * 2)],
-      created_at: Date().toString(),
-      updated_at: Date().toString(),
-    });
-
-    return this.categoryRepository.find();
-  }
+  // @get('/categories')
+  // async index() {
+  //   await this.categoryRepository.create({
+  //     id: String(Date.now()),
+  //     name: `My category ${Date.now()}`,
+  //     description: `My description ${Date.now()}`,
+  //     is_active: [true, false][Math.floor(Math.random() * 2)],
+  //     created_at: Date().toString(),
+  //     updated_at: Date().toString(),
+  //   });
+  //
+  //   return this.categoryRepository.find();
+  // }
 }

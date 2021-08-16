@@ -1,7 +1,7 @@
 import { BootMixin } from '@loopback/boot';
 import { Application, ApplicationConfig } from '@loopback/core';
 import { RepositoryMixin } from '@loopback/repository';
-import { RestComponent, RestServer } from '@loopback/rest';
+import { RestBindings, RestComponent, RestServer } from '@loopback/rest';
 import { ServiceMixin } from '@loopback/service-proxy';
 import { RestExplorerBindings } from '@loopback/rest-explorer';
 import path from 'path';
@@ -12,6 +12,7 @@ import {
   RestExplorerComponent,
   ValidatorsComponent,
 } from './components';
+import { ApiResourceProvider } from './providers/api-resource.provider';
 
 export { ApplicationConfig };
 
@@ -32,9 +33,12 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
     restServer.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
-    this.configure(RestExplorerBindings.COMPONENT).to({
+    this.bind(RestExplorerBindings.CONFIG).to({
       path: '/explorer',
     });
+    this.bind(RestBindings.SequenceActions.SEND).toProvider(
+      ApiResourceProvider,
+    );
     this.component(RestExplorerComponent);
     this.component(ValidatorsComponent);
     this.component(EntityComponent);
