@@ -1,4 +1,5 @@
 import { Entity, model, property } from '@loopback/repository';
+import { Exclude } from 'class-transformer';
 
 export interface SmallCategory {
   id: string;
@@ -43,12 +44,14 @@ export class Category extends Entity {
   })
   is_active?: boolean;
 
+  @Exclude()
   @property({
     type: 'date',
     required: true,
   })
   created_at: string;
 
+  @Exclude()
   @property({
     type: 'date',
     required: true,

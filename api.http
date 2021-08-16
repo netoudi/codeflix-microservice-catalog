@@ -1,3 +1,7 @@
+GET http://localhost:3333/categories/db8dfabf-6341-49d0-98f6-754feabf398e
+Accept: application/json
+
+###
 GET http://localhost:3333/categories
 Accept: application/json
 
