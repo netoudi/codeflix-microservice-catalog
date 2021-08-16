@@ -42,7 +42,16 @@ export class CategoryController {
   async find(
     @param.filter(Category) filter?: Filter<Category>,
   ): Promise<PaginatorSerializer<Category>> {
-    const newFilter = new CategoryFilterBuilder(filter).build();
+    const newFilter = new CategoryFilterBuilder({
+      ...filter,
+      order: ['_score DESC'],
+      where: {
+        ['fuzzy']: {
+          query: 'DeepSkiBlue',
+          fields: ['name', 'description'],
+        },
+      },
+    }).build();
 
     return this.categoryRepository.paginate(newFilter);
   }

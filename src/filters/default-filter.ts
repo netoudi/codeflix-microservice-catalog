@@ -1,5 +1,5 @@
-import { AnyObject } from '@loopback/filter/src/types';
 import {
+  AnyObject,
   Filter,
   FilterBuilder,
   JsonSchema,
@@ -8,20 +8,18 @@ import {
   WhereBuilder,
 } from '@loopback/repository';
 import { clone } from 'lodash';
-import { getJsonSchema } from '@loopback/openapi-v3';
+import { getJsonSchema } from '@loopback/repository-json-schema';
 
 export abstract class DefaultFilter<
   MT extends object = AnyObject,
 > extends FilterBuilder<MT> {
-  protected dFilter: Filter<MT>;
+  protected defaultWhere: Where<MT> | null | undefined;
 
   constructor(f?: Filter<MT>) {
     super(f);
     const dFilter = this.defaultFilter();
-    this.dFilter = dFilter
-      ? clone(dFilter.filter)
-      : new FilterBuilder(f).filter;
-    this.filter = {};
+    this.defaultWhere = dFilter ? clone(dFilter.filter.where) : null;
+    this.filter.where = {};
   }
 
   protected defaultFilter(): DefaultFilter<MT> | void {}
@@ -95,6 +93,8 @@ export abstract class DefaultFilter<
   }
 
   build(): Filter<MT> {
-    return this.dFilter ? this.impose(this.dFilter).filter : this.dFilter;
+    return this.defaultWhere
+      ? this.impose(this.defaultWhere).filter
+      : this.filter;
   }
 }
