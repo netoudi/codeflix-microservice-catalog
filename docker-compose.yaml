@@ -9,7 +9,7 @@ services:
       - HOST=0.0.0.0
       - PORT=3333
     ports:
-      - 3333:3333
+      - "3333:3333"
     volumes:
       - .:/home/node/app
     networks:
@@ -21,8 +21,9 @@ services:
     container_name: codeflix-catalog-elasticsearch
     environment:
       - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms128m -Xmx128m"
     ports:
-      - 9200:9200
+      - "9200:9200"
     volumes:
       - ./.docker/elasticdata:/usr/share/elasticsearch/data
     networks:
@@ -32,7 +33,7 @@ services:
     image: docker.elastic.co/kibana/kibana:7.7.1
     container_name: codeflix-catalog-kibana
     ports:
-      - 5601:5601
+      - "5601:5601"
     networks:
       - app-network
 
