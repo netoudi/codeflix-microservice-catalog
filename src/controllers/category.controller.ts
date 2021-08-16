@@ -64,6 +64,17 @@ export class CategoryController {
     const newFilter = new CategoryFilterBuilder(filter).where({ id }).build();
     const obj = await this.categoryRepository.findOne(newFilter);
 
+    console.dir(
+      new CategoryFilterBuilder({
+        where: {
+          'categories.name': 'x',
+        },
+      }).build(),
+      {
+        depth: 8,
+      },
+    );
+
     console.dir(newFilter, { depth: 8 });
 
     if (!obj) {
