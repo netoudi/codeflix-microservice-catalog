@@ -1,0 +1,4 @@
+GET http://localhost:3333/categories
+Accept: application/json
+
+###

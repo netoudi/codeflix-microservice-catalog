@@ -6,7 +6,7 @@ const config = {
   connector: 'esv6',
   index: 'catalog',
   version: 7,
-  // defaultSize: '',
+  defaultSize: 50,
   debug: process.env.APP_ENV === 'DEV',
   configuration: {
     node: process.env.ELASTIC_SEARCH_HOST,
@@ -74,7 +74,8 @@ const config = {
 @lifeCycleObserver('datasource')
 export class Esv7DataSource
   extends juggler.DataSource
-  implements LifeCycleObserver {
+  implements LifeCycleObserver
+{
   static dataSourceName = 'esv7';
   static readonly defaultConfig = config;
 
