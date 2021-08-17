@@ -7,7 +7,7 @@ import {
 import { juggler } from '@loopback/repository';
 import { Client } from 'es6';
 
-const config = {
+export const config = {
   name: 'esv7',
   connector: 'esv6',
   index: 'catalog',

@@ -54,7 +54,9 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
       },
     };
 
-    this.server(RabbitmqServer);
+    if (options?.rabbitmq) {
+      this.server(RabbitmqServer);
+    }
   }
 
   async boot() {
