@@ -175,10 +175,11 @@ export class RabbitmqServer extends Context implements Server {
 
     return bindings
       .map((binding) => {
-        const metadata = MetadataInspector.getAllMethodMetadata<RabbitmqSubscribeMetadata>(
-          RABBITMQ_SUBSCRIBE_DECORATOR,
-          binding.valueConstructor?.prototype,
-        );
+        const metadata =
+          MetadataInspector.getAllMethodMetadata<RabbitmqSubscribeMetadata>(
+            RABBITMQ_SUBSCRIBE_DECORATOR,
+            binding.valueConstructor?.prototype,
+          );
 
         if (!metadata) return [];
 
@@ -205,7 +206,7 @@ export class RabbitmqServer extends Context implements Server {
   }
 
   private async consume({ channel, queue, method }: ConsumeMetadata) {
-    await channel.consume(queue, async (message) => {
+    await channel.consume(queue, (message) => {
       try {
         if (!message) throw new Error('Received null message');
 
@@ -220,7 +221,7 @@ export class RabbitmqServer extends Context implements Server {
             data = null;
           }
 
-          const responseType = await method({ data, message, channel });
+          const responseType = method({ data, message, channel });
           this.dispatchResponse(channel, message, responseType);
         }
       } catch (e) {

@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { bind, config, ContextTags, inject } from '@loopback/context';
 import { Component } from '@loopback/core';
 import {

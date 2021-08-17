@@ -8,17 +8,15 @@ if (!command) {
   showAvailableCommands();
 }
 
-const commandKey: string | undefined = Object.keys(commands).find((c) => {
-  // @ts-ignore
-  return commands[c].command === command;
-});
+const commandKey: string = Object.keys(commands).find((c) => {
+  return (commands as any)[c].command === command;
+})!;
 
 if (!commandKey) {
   showAvailableCommands();
 }
 
-// @ts-ignore
-const commandInstance = new commands[commandKey]();
+const commandInstance = new (commands as any)[commandKey]();
 
 commandInstance.run().catch(console.error);
 
@@ -29,8 +27,9 @@ function showAvailableCommands() {
   console.log('');
 
   for (const c of Object.keys(commands)) {
-    // @ts-ignore
-    console.log(`- ${commands[c].command} - ${commands[c].description}`);
+    console.log(
+      `- ${(commands as any)[c].command} - ${(commands as any)[c].description}`,
+    );
   }
 
   console.log('');
