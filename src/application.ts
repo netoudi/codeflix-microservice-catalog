@@ -4,6 +4,11 @@ import { RepositoryMixin } from '@loopback/repository';
 import { RestBindings, RestComponent, RestServer } from '@loopback/rest';
 import { ServiceMixin } from '@loopback/service-proxy';
 import { RestExplorerBindings } from '@loopback/rest-explorer';
+import { AuthenticationComponent } from '@loopback/authentication';
+import {
+  JWTAuthenticationComponent,
+  TokenServiceBindings,
+} from '@loopback/authentication-jwt';
 import path from 'path';
 import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
@@ -13,6 +18,7 @@ import {
   ValidatorsComponent,
 } from './components';
 import { ApiResourceProvider } from './providers/api-resource.provider';
+import { JWTService } from './services/jwt.service';
 
 export { ApplicationConfig };
 
@@ -42,6 +48,9 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
     this.component(RestExplorerComponent);
     this.component(ValidatorsComponent);
     this.component(EntityComponent);
+    this.component(AuthenticationComponent);
+    this.component(JWTAuthenticationComponent);
+    this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here

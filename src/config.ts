@@ -31,4 +31,7 @@ export default {
       },
     ],
   },
+  jwt: {
+    secret: process.env.JWT_PUBLIC_KEY,
+  },
 };

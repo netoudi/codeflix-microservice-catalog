@@ -7,11 +7,13 @@ import {
   Where,
 } from '@loopback/repository';
 import { get, getModelSchemaRef, param, response } from '@loopback/rest';
+import { authenticate } from '@loopback/authentication';
 import { Category } from '../models';
 import { CategoryRepository } from '../repositories';
 import { PaginatorSerializer } from '../utils/paginator-serializer';
 import { CategoryFilterBuilder } from '../filters/category.filter';
 
+@authenticate('jwt')
 export class CategoryController {
   constructor(
     @repository(CategoryRepository)
