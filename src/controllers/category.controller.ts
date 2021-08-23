@@ -12,8 +12,10 @@ import { Category } from '../models';
 import { CategoryRepository } from '../repositories';
 import { PaginatorSerializer } from '../utils/paginator-serializer';
 import { CategoryFilterBuilder } from '../filters/category.filter';
+import { authorize } from '@loopback/authorization';
 
 @authenticate('jwt')
+@authorize({ allowedRoles: ['subscriber', 'catalog-admin'] })
 export class CategoryController {
   constructor(
     @repository(CategoryRepository)

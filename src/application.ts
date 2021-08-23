@@ -9,6 +9,11 @@ import {
   JWTAuthenticationComponent,
   TokenServiceBindings,
 } from '@loopback/authentication-jwt';
+import {
+  AuthorizationComponent,
+  AuthorizationDecision,
+  AuthorizationTags,
+} from '@loopback/authorization';
 import path from 'path';
 import { MySequence } from './sequence';
 import { RabbitmqServer } from './servers';
@@ -18,6 +23,7 @@ import {
   ValidatorsComponent,
 } from './components';
 import { ApiResourceProvider } from './providers/api-resource.provider';
+import { SubscriberAuthorizationProvider } from './providers/subscriber-authorization.provider';
 import { JWTService } from './services/jwt.service';
 
 export { ApplicationConfig };
@@ -51,6 +57,17 @@ export class CodeflixMicroserviceCatalogApplication extends BootMixin(
     this.component(AuthenticationComponent);
     this.component(JWTAuthenticationComponent);
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
+
+    const bindings = this.component(AuthorizationComponent);
+
+    this.configure(bindings.key).to({
+      precedence: AuthorizationDecision.DENY,
+      defaultDecision: AuthorizationDecision.DENY,
+    });
+
+    this.bind('authorizationProviders.subscriber-provider')
+      .toProvider(SubscriberAuthorizationProvider)
+      .tag(AuthorizationTags.AUTHORIZER);
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here
